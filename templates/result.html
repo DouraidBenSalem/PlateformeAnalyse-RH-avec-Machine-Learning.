@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-gradient-primary text-white">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-check-circle me-2"></i> Prediction Result</h6>
+            </div>
+            <div class="card-body text-center">
+                <h5 class="text-gray-600 mb-3">Employee Segment</h5>
+                
+                <div class="display-4 font-weight-bold text-primary mb-4">
+                    {{ segment_name }}
+                </div>
+                
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-lightbulb me-2"></i> <strong>Recommendation:</strong> {{ recommendation }}
+                </div>
+                
+                <hr class="my-4">
+                
+                <h6 class="text-start font-weight-bold text-gray-800 mb-3">Input Summary</h6>
+                <div class="row text-start small text-muted">
+                    {% for key, value in data.items() %}
+                    <div class="col-md-4 mb-2">
+                        <strong class="text-dark">{{ key|replace('_', ' ')|title }}:</strong> {{ value }}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-5 d-flex justify-content-center gap-3">
+                    <a href="/predict" class="btn btn-primary shadow-sm">
+                        <i class="fas fa-redo me-2"></i> Predict Another
+                    </a>
+                    <a href="/" class="btn btn-outline-secondary shadow-sm">
+                        <i class="fas fa-tachometer-alt me-2"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

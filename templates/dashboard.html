@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard Overview</h1>
+    <a href="/predict" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50"></i> New Prediction
+    </a>
+</div>
+
+<!-- KPI Cards -->
+<div class="row">
+    <!-- Total Employees -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card kpi-card shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="kpi-title text-primary">Total Employees</div>
+                        <div class="kpi-value">{{ total_employees }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avg Training Score -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card kpi-card success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="kpi-title text-success">Avg Training Score</div>
+                        <div class="kpi-value">{{ avg_score }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Talents % -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card kpi-card info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="kpi-title text-info">% Top Talents</div>
+                        <div class="kpi-value">{{ top_talents_pct }}%</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-star fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests (Placeholder) -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card kpi-card warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="kpi-title text-warning">Pending Reviews</div>
+                        <div class="kpi-value">18</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Segment Distribution</h6>
+            </div>
+            <div class="card-body">
+                <div id="pie-chart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Key Drivers (Feature Importance)</h6>
+            </div>
+            <div class="card-body">
+                {% if graph_fi %}
+                    <div id="fi-chart"></div>
+                {% else %}
+                    <p class="text-center mt-5">Feature importance not available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Training Score Distribution</h6>
+            </div>
+            <div class="card-body">
+                <div id="box-chart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Performance vs Training</h6>
+            </div>
+            <div class="card-body">
+                <div id="scatter-chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var graphPie = {{ graph_pie | safe }};
+    Plotly.newPlot('pie-chart', graphPie.data, graphPie.layout);
+
+    var graphBox = {{ graph_box | safe }};
+    Plotly.newPlot('box-chart', graphBox.data, graphBox.layout);
+
+    var graphScatter = {{ graph_scatter | safe }};
+    Plotly.newPlot('scatter-chart', graphScatter.data, graphScatter.layout);
+
+    {% if graph_fi %}
+    var graphFi = {{ graph_fi | safe }};
+    Plotly.newPlot('fi-chart', graphFi.data, graphFi.layout);
+    {% endif %}
+</script>
+{% endblock %}

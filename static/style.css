@@ -1,0 +1,104 @@
+:root {
+    --primary-color: #4e73df;
+    --secondary-color: #858796;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --light-color: #f8f9fc;
+    --dark-color: #5a5c69;
+    --bg-gradient: linear-gradient(180deg, #f8f9fc 0%, #e3e6f0 100%);
+}
+
+body {
+    background: var(--bg-gradient);
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #5a5c69;
+    min-height: 100vh;
+}
+
+.navbar {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    background-color: #fff !important;
+}
+
+.navbar-brand {
+    color: var(--primary-color) !important;
+    font-weight: 800;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+
+.nav-link {
+    color: var(--dark-color) !important;
+    font-weight: 600;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 0.35rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transition: transform 0.3s ease-in-out;
+    margin-bottom: 1.5rem;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.kpi-card {
+    border-left: 0.25rem solid var(--primary-color);
+}
+
+.kpi-card.success { border-left-color: var(--success-color); }
+.kpi-card.info { border-left-color: var(--info-color); }
+.kpi-card.warning { border-left-color: var(--warning-color); }
+
+.kpi-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.kpi-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #5a5c69;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.35rem;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+
+h1, h2, h3 {
+    color: #4e73df;
+    font-weight: 700;
+}
+
+footer {
+    background-color: #fff !important;
+    box-shadow: 0 -0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
