@@ -1,0 +1,16 @@
+services:
+  ml-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hr-attrition-app
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+    restart: unless-stopped
+    command: python app.py
