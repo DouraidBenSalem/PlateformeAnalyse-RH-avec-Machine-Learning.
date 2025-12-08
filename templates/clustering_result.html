@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultat du Clustering</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #764ba2;
+        }
+
+        .result-container {
+            padding: 40px;
+        }
+
+        .prediction-box {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .prediction-box h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .badge-cluster {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 15px 0;
+            display: block;
+        }
+
+        .data-summary {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .data-summary h3 {
+            color: #495057;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .data-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .data-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .data-item span {
+            color: #495057;
+            font-size: 1.1em;
+        }
+
+        .stats-section {
+            background: #f0f7ff;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stats-section h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            color: #856404;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Résultat du Clustering</h1>
+        </div>
+
+        <nav>
+            <a href="/">🏠 Accueil</a>
+            <a href="/prediction">🔮 Prédiction</a>
+            <a href="/clustering">👥 Clustering</a>
+            <a href="/dashboard">📊 Dashboard</a>
+        </nav>
+
+        <div class="result-container">
+            <!-- Cluster Assignment -->
+            <div class="prediction-box">
+                <h2>✅ Analyse de Clustering Complétée</h2>
+                <div class="badge-cluster">Cluster #{{ prediction }}</div>
+                <p>L'employé appartient au cluster {{ prediction }}</p>
+            </div>
+
+            <!-- Employee Data Summary -->
+            <div class="data-summary">
+                <h3>👤 Informations de l'Employé Analysé</h3>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <strong>Département</strong>
+                        <span>{{ employee_data.department }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Éducation</strong>
+                        <span>{{ employee_data.education }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Genre</strong>
+                        <span>{{ 'Homme' if employee_data.gender == 'm' else 'Femme' }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Canal de recrutement</strong>
+                        <span>{{ employee_data.recruitment_channel }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Nombre de formations</strong>
+                        <span>{{ employee_data.no_of_trainings }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Années de service</strong>
+                        <span>{{ employee_data.length_of_service }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>KPIs > 80%</strong>
+                        <span>{{ 'Oui' if employee_data.KPIs_met_more_than_80 == 1 else 'Non' }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Récompenses</strong>
+                        <span>{{ 'Oui' if employee_data.awards_won == 1 else 'Non' }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Score moyen de formation</strong>
+                        <span>{{ employee_data.avg_training_score }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cluster Summary -->
+            <div class="stats-section">
+                <h3>📊 Profil Moyen du Cluster {{ prediction }}</h3>
+                
+                {% if summary.message %}
+                    <div class="alert-warning">
+                        ⚠️ {{ summary.message }}
+                    </div>
+                {% else %}
+                    <div class="stats-grid">
+                        {% if summary.cluster_size %}
+                        <div class="stat-card">
+                            <div class="stat-value">{{ summary.cluster_size|int }}</div>
+                            <div class="stat-label">Employés</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.KPIs_met_more_than_80_mean %}
+                        <div class="stat-card">
+                            <div class="stat-value">{{ "%.0f"|format(summary.KPIs_met_more_than_80_mean * 100) }}%</div>
+                            <div class="stat-label">KPIs > 80%</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.awards_won_mean %}
+                        <div class="stat-card">
+                            <div class="stat-value">{{ "%.0f"|format(summary.awards_won_mean * 100) }}%</div>
+                            <div class="stat-label">Avec récompenses</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.trained_more_than_once_mean %}
+                        <div class="stat-card">
+                            <div class="stat-value">{{ "%.0f"|format(summary.trained_more_than_once_mean * 100) }}%</div>
+                            <div class="stat-label">Formés > 1 fois</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="data-grid">
+                        {% if summary.department_mode_agg or 'department_<lambda_0>' in summary %}
+                        <div class="data-item">
+                            <strong>Département principal</strong>
+                            <span>{{ summary.department_mode_agg or summary['department_<lambda_0>'] }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.education_mode_agg or 'education_<lambda_0>' in summary %}
+                        <div class="data-item">
+                            <strong>Niveau d'éducation</strong>
+                            <span>{{ summary.education_mode_agg or summary['education_<lambda_0>'] }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.recruitment_channel_mode_agg or 'recruitment_channel_<lambda_0>' in summary %}
+                        <div class="data-item">
+                            <strong>Canal de recrutement</strong>
+                            <span>{{ summary.recruitment_channel_mode_agg or summary['recruitment_channel_<lambda_0>'] }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.gender_mode_agg or 'gender_<lambda_0>' in summary %}
+                        <div class="data-item">
+                            <strong>Genre dominant</strong>
+                            <span>{{ summary.gender_mode_agg or summary['gender_<lambda_0>'] }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.age_mean %}
+                        <div class="data-item">
+                            <strong>Âge moyen</strong>
+                            <span>{{ "%.1f"|format(summary.age_mean) }} ans</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.length_of_service_mean %}
+                        <div class="data-item">
+                            <strong>Années de service</strong>
+                            <span>{{ "%.1f"|format(summary.length_of_service_mean) }} ans</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.avg_training_score_mean %}
+                        <div class="data-item">
+                            <strong>Score moyen de formation</strong>
+                            <span>{{ "%.1f"|format(summary.avg_training_score_mean) }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if summary.previous_year_rating_mean %}
+                        <div class="data-item">
+                            <strong>Évaluation année précédente</strong>
+                            <span>{{ "%.2f"|format(summary.previous_year_rating_mean) }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-container">
+                <a href="/" class="btn btn-secondary">🏠 Accueil</a>
+                <a href="/clustering" class="btn btn-primary">🔄 Nouvelle Analyse</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

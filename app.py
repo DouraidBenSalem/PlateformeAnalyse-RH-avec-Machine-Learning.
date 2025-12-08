@@ -12,6 +12,16 @@ import joblib
 from scipy import stats
 from sklearn.preprocessing import LabelEncoder
 
+# Clustering imports
+try:
+    import umap
+    import hdbscan
+    import gower_multiprocessing as gower
+    CLUSTERING_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Clustering dependencies not available: {e}")
+    CLUSTERING_AVAILABLE = False
+
 warnings.filterwarnings("ignore")
 
 app = Flask(__name__)
@@ -39,6 +49,20 @@ SEGMENT_NAMES = {
     2: "À développer",
     3: "Top talents"
 }
+
+# Variables pour le clustering
+hdbscan_model = None
+umap_reducer = None
+scaler_clustering = None
+cluster_summary = None
+training_data_processed = None
+training_labels = None
+numerical_cols_clustering = ['length_of_service', 'avg_training_score']
+gower_cols = [
+    'department', 'education', 'gender', 'recruitment_channel',
+    'KPIs_met_more_than_80', 'awards_won', 'trained_more_than_once',
+    'length_of_service', 'avg_training_score'
+]
 
 # ============================================================
 # CHARGEMENT DES MODÈLES
@@ -125,6 +149,74 @@ def load_segmentation_models():
 
 # Charger les modèles de segmentation
 load_segmentation_models()
+
+
+# ============================================================
+# CHARGEMENT DES MODÈLES DE CLUSTERING
+# ============================================================
+def load_clustering_models():
+    """Charge les modèles de clustering HDBSCAN"""
+    global hdbscan_model, umap_reducer, scaler_clustering, cluster_summary
+    global training_data_processed, training_labels
+    
+    if not CLUSTERING_AVAILABLE:
+        print("⚠️ Clustering dependencies not installed. Skipping clustering model loading.")
+        return
+    
+    try:
+        clustering_dir = 'PickleFiles/clustering'
+        
+        if not os.path.exists(clustering_dir):
+            print(f"⚠️ Directory {clustering_dir} not found. Clustering models not loaded.")
+            return
+        
+        # Load HDBSCAN model
+        hdbscan_path = os.path.join(clustering_dir, 'hdbscan_model.pkl')
+        if os.path.exists(hdbscan_path):
+            with open(hdbscan_path, 'rb') as f:
+                hdbscan_model = pickle.load(f)
+            print(f"✅ HDBSCAN model loaded from {hdbscan_path}")
+        
+        # Load UMAP reducer
+        umap_path = os.path.join(clustering_dir, 'umap_reducer.pkl')
+        if os.path.exists(umap_path):
+            with open(umap_path, 'rb') as f:
+                umap_reducer = pickle.load(f)
+            print(f"✅ UMAP reducer loaded from {umap_path}")
+        
+        # Load scaler
+        scaler_path = os.path.join(clustering_dir, 'scaler.pkl')
+        if os.path.exists(scaler_path):
+            with open(scaler_path, 'rb') as f:
+                scaler_clustering = pickle.load(f)
+            print(f"✅ Scaler loaded from {scaler_path}")
+        
+        # Load cluster summary
+        summary_path = os.path.join(clustering_dir, 'cluster_summary.pkl')
+        if os.path.exists(summary_path):
+            with open(summary_path, 'rb') as f:
+                cluster_summary = pickle.load(f)
+            print(f"✅ Cluster summary loaded from {summary_path}")
+        
+        # Load training data
+        training_data_path = os.path.join(clustering_dir, 'training_data_processed.pkl')
+        if os.path.exists(training_data_path):
+            with open(training_data_path, 'rb') as f:
+                training_data_processed = pickle.load(f)
+            print(f"✅ Training data loaded from {training_data_path}")
+        
+        # Load training labels
+        labels_path = os.path.join(clustering_dir, 'training_labels.pkl')
+        if os.path.exists(labels_path):
+            with open(labels_path, 'rb') as f:
+                training_labels = pickle.load(f)
+            print(f"✅ Training labels loaded from {labels_path}")
+        
+    except Exception as e:
+        print(f"❌ Error loading clustering models: {e}")
+
+# Load clustering models
+load_clustering_models()
 
 
 def preprocess_input(data):
@@ -280,6 +372,34 @@ def generate_recommendation(prediction, data):
                 "📊 Maintenir un suivi régulier (trimestriel)"
             ]
         }
+
+
+# ============================================================
+# FONCTION DE PRÉTRAITEMENT POUR CLUSTERING
+# ============================================================
+
+def preprocess_clustering_input(data):
+    """Preprocesses the input data from the form for clustering."""
+    df = pd.DataFrame([data])
+
+    # Feature Engineering from the notebook
+    df['trained_more_than_once'] = df['no_of_trainings'].apply(lambda x: 1 if x > 1 else 0)
+    
+    # Map gender
+    df['gender'] = df['gender'].map({'m': 1, 'f': 0})
+
+    # Select and reorder columns to match the training data for Gower
+    df = df[gower_cols]
+
+    # Type conversion
+    df[numerical_cols_clustering] = df[numerical_cols_clustering].astype(float)
+    df[df.columns.difference(numerical_cols_clustering)] = df[df.columns.difference(numerical_cols_clustering)].astype(str)
+
+    # Scaling numerical columns
+    if scaler_clustering is not None:
+        df[numerical_cols_clustering] = scaler_clustering.transform(df[numerical_cols_clustering])
+
+    return df
 
 
 # ============================================================
@@ -1158,6 +1278,104 @@ def predict():
         }), 400
 
 
+# ============================================================
+# ROUTES CLUSTERING
+# ============================================================
+
+@app.route('/clustering')
+def clustering_index():
+    """Page de clustering des employés"""
+    return render_template('clustering_index.html')
+
+
+@app.route('/clustering/predict', methods=['POST'])
+def clustering_predict():
+    """Prédiction de clustering pour un employé"""
+    try:
+        # Get data from form
+        form_data = {
+            'department': request.form['department'],
+            'education': request.form['education'],
+            'gender': request.form['gender'],
+            'recruitment_channel': request.form['recruitment_channel'],
+            'no_of_trainings': int(request.form['no_of_trainings']),
+            'length_of_service': float(request.form['length_of_service']),
+            'KPIs_met_more_than_80': int(request.form['KPIs_met_more_than_80']),
+            'awards_won': int(request.form['awards_won']),
+            'avg_training_score': float(request.form['avg_training_score'])
+        }
+
+        # Check if clustering is available
+        if not CLUSTERING_AVAILABLE:
+            return render_template('clustering_result.html',
+                                 prediction=-1,
+                                 summary={"message": "Clustering dependencies not installed. Please install umap-learn, hdbscan, and gower_multiprocessing."},
+                                 employee_data=form_data)
+        
+        # Check if models are loaded
+        if training_data_processed is None or training_labels is None:
+            return render_template('clustering_result.html',
+                                 prediction=-1,
+                                 summary={"message": "Clustering models not loaded. Please train the models first."},
+                                 employee_data=form_data)
+
+        # Preprocess the input data
+        new_employee_processed = preprocess_clustering_input(form_data.copy())
+
+        try:
+            # The UMAP model was trained on a precomputed Gower distance matrix.
+            # Since UMAP with precomputed distances doesn't support transform(),
+            # we'll use a nearest-neighbor approach: find the k closest training points
+            # and assign the new employee to the most common cluster among them.
+            
+            # Identify which columns are categorical for the gower matrix
+            cat_features_mask = [col not in numerical_cols_clustering for col in training_data_processed.columns]
+
+            # Calculate Gower distances from the new point to all points in the training set
+            gower_dists = gower.gower_matrix(
+                new_employee_processed.to_numpy(), 
+                training_data_processed.to_numpy(), 
+                cat_features=cat_features_mask
+            )
+
+            # Find the k nearest neighbors (using k=5 as a reasonable default)
+            k = 5
+            nearest_indices = np.argsort(gower_dists[0])[:k]
+            
+            # Get the clusters of the nearest neighbors
+            nearest_clusters = training_labels[nearest_indices]
+            
+            # Assign to the most common cluster among the neighbors (excluding noise -1)
+            clusters_without_noise = nearest_clusters[nearest_clusters != -1]
+            if len(clusters_without_noise) > 0:
+                predicted_cluster = np.bincount(clusters_without_noise).argmax()
+            else:
+                predicted_cluster = -1  # All neighbors are noise
+
+        except Exception as e:
+            # Fallback for demonstration if prediction fails
+            print(f"Prediction failed, using fallback. Error: {e}")
+            predicted_cluster = -1  # Assign to noise if prediction fails
+
+        # Get cluster summary
+        if cluster_summary is not None and predicted_cluster in cluster_summary.index:
+            summary = cluster_summary.loc[predicted_cluster].to_dict()
+        else:
+            summary = {"message": "Cet employé est considéré comme atypique et n'appartient pas à un cluster spécifique."}
+
+        return render_template('clustering_result.html',
+                             prediction=predicted_cluster,
+                             summary=summary,
+                             employee_data=form_data)
+    
+    except Exception as e:
+        print(f"Error in clustering prediction: {e}")
+        return render_template('clustering_result.html',
+                             prediction=-1,
+                             summary={"message": f"Erreur lors de la prédiction: {str(e)}"},
+                             employee_data={})
+
+
 @app.route('/api/health')
 def health_check():
     """Endpoint de vérification de l'état de l'application"""
@@ -1165,7 +1383,8 @@ def health_check():
         "status": "running",
         "models_loaded": {
             "random_forest": model_rf is not None,
-            "xgboost": model_xgb is not None
+            "xgboost": model_xgb is not None,
+            "clustering": training_data_processed is not None
         },
         "features_loaded": feature_columns is not None
     })
