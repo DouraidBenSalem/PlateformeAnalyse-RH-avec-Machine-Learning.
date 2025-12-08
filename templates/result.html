@@ -39,6 +39,24 @@
             margin-bottom: 10px;
         }
 
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #764ba2;
+        }
+
         .result-container {
             padding: 40px;
         }
@@ -199,6 +217,12 @@
             <p>Analyse du Risque d'Attrition</p>
         </div>
 
+        <nav>
+            <a href="/">🏠 Accueil</a>
+            <a href="/prediction">🔮 Nouvelle Prédiction</a>
+            <a href="/recommendations">📚 Recommandations</a>
+        </nav>
+
         <div class="result-container">
             <!-- Résultat de la prédiction -->
             <div class="prediction-box {% if result.prediction == 1 %}high-risk{% else %}low-risk{% endif %}">
@@ -226,8 +250,24 @@
 
             <!-- Recommandations -->
             <div class="recommendation-box">
-                <h3>💡 Recommandations</h3>
-                <p>{{ result.recommendation }}</p>
+                <h3>💡 {{ result.recommendation.titre }}</h3>
+                <p style="margin-bottom: 20px; font-weight: 600;">{{ result.recommendation.message }}</p>
+                
+                <h4 style="color: #667eea; margin: 20px 0 10px 0;">📋 Actions Immédiates :</h4>
+                <ul style="list-style: none; padding: 0;">
+                    {% for action in result.recommendation.actions_immediates %}
+                    <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">{{ action }}</li>
+                    {% endfor %}
+                </ul>
+
+                <h4 style="color: #667eea; margin: 20px 0 10px 0;">🎯 Recommandations Détaillées :</h4>
+                {% for reco in result.recommendation.recommandations %}
+                <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <strong style="color: #495057;">{{ reco.titre }}</strong>
+                    <span style="float: right; background: {% if reco.priorite == 'Critique' %}#ff6b6b{% elif reco.priorite == 'Haute' %}#ffa94d{% else %}#51cf66{% endif %}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.85em;">{{ reco.priorite }}</span>
+                    <p style="color: #6c757d; margin-top: 8px;">{{ reco.description }}</p>
+                </div>
+                {% endfor %}
             </div>
 
             <!-- Résumé des données saisies -->
@@ -287,7 +327,8 @@
 
             <!-- Boutons d'action -->
             <div class="button-container">
-                <a href="/" class="btn btn-primary">🔄 Nouvelle Prédiction</a>
+                <a href="/prediction" class="btn btn-primary">🔄 Nouvelle Prédiction</a>
+                <a href="/recommendations" class="btn btn-secondary">📚 Guide Complet</a>
                 <button onclick="window.print()" class="btn btn-secondary">🖨️ Imprimer</button>
             </div>
         </div>

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: hr-attrition-app
+    container_name: hr-attrition-prediction-app
     ports:
       - "5000:5000"
     volumes:
@@ -12,5 +12,12 @@ services:
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
     restart: unless-stopped
     command: python app.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
