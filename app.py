@@ -5,6 +5,10 @@ import numpy as np
 import warnings
 import os
 import math
+import json
+import plotly
+import plotly.express as px
+import joblib
 from scipy import stats
 from sklearn.preprocessing import LabelEncoder
 
@@ -20,6 +24,21 @@ model_xgb = None
 feature_columns = None
 feature_columns_recommandation = None
 preprocessing_info = None
+
+# Variables pour la segmentation
+preprocessor_seg = None
+pca_seg = None
+kmeans_seg = None
+classifier_seg = None
+feature_names_seg = None
+
+# Mapping des noms de segments
+SEGMENT_NAMES = {
+    0: "Besoin élevé en formation",
+    1: "Performants moyens",
+    2: "À développer",
+    3: "Top talents"
+}
 
 # ============================================================
 # CHARGEMENT DES MODÈLES
@@ -60,6 +79,52 @@ try:
         print("⚠️ Aucun modèle trouvé. Veuillez exécuter le notebook pour entraîner les modèles.")
 except Exception as e:
     print(f"❌ Erreur lors du chargement du modèle: {e}")
+
+
+# ============================================================
+# CHARGEMENT DES MODÈLES DE SEGMENTATION
+# ============================================================
+def load_segmentation_models():
+    """Charge les modèles de segmentation"""
+    global preprocessor_seg, pca_seg, kmeans_seg, classifier_seg, feature_names_seg
+    
+    try:
+        # Chercher d'abord dans PickleFiles/, sinon dans Segmentation/
+        possible_dirs = ['PickleFiles', 'Segmentation', '.']
+        
+        for seg_dir in possible_dirs:
+            preprocessor_path = os.path.join(seg_dir, 'preprocessor.joblib')
+            if os.path.exists(preprocessor_path):
+                preprocessor_seg = joblib.load(preprocessor_path)
+                print(f"✅ Preprocessor de segmentation chargé depuis {preprocessor_path}")
+                
+                pca_path = os.path.join(seg_dir, 'pca.joblib')
+                if os.path.exists(pca_path):
+                    pca_seg = joblib.load(pca_path)
+                    print(f"✅ PCA de segmentation chargé depuis {pca_path}")
+                
+                kmeans_path = os.path.join(seg_dir, 'kmeans.joblib')
+                if os.path.exists(kmeans_path):
+                    kmeans_seg = joblib.load(kmeans_path)
+                    print(f"✅ KMeans de segmentation chargé depuis {kmeans_path}")
+                
+                classifier_path = os.path.join(seg_dir, 'classifier.joblib')
+                if os.path.exists(classifier_path):
+                    classifier_seg = joblib.load(classifier_path)
+                    print(f"✅ Classifier de segmentation chargé depuis {classifier_path}")
+                
+                feature_names_path = os.path.join(seg_dir, 'feature_names.joblib')
+                if os.path.exists(feature_names_path):
+                    feature_names_seg = joblib.load(feature_names_path)
+                    print(f"✅ Feature names de segmentation chargés depuis {feature_names_path}")
+                
+                break  # Sortir de la boucle si on a trouvé les fichiers
+            
+    except Exception as e:
+        print(f"❌ Erreur lors du chargement des modèles de segmentation: {e}")
+
+# Charger les modèles de segmentation
+load_segmentation_models()
 
 
 def preprocess_input(data):
@@ -233,22 +298,336 @@ def prediction_page():
     return render_template('index.html')
 
 
-@app.route('/recommendations')
-def recommendations():
-    """Page de recommandations RH générales"""
-    stats = {
-        'total_features': 30,
-        'model_accuracy': 85,
-        'trees_count': 100,
-        'prediction_time': 'Temps réel'
-    }
-    return render_template('recommendations.html', stats=stats)
+@app.route('/segmentation')
+def segmentation_page():
+    """Page de prédiction de segment employé"""
+    return render_template('indexseg.html')
 
 
 @app.route('/formation')
 def formation_page():
     """Page de prédiction de besoin de formation"""
     return render_template('indexreco.html')
+
+
+@app.route('/predict_segmentation', methods=['POST'])
+def predict_segmentation():
+    """Effectue la prédiction du segment employé"""
+    
+    try:
+        # Récupération des données du formulaire
+        data = {
+            'department': request.form.get('department'),
+            'region': request.form.get('region'),
+            'education': request.form.get('education'),
+            'gender': request.form.get('gender'),
+            'recruitment_channel': request.form.get('recruitment_channel'),
+            'no_of_trainings': int(request.form.get('no_of_trainings')),
+            'age': int(request.form.get('age')),
+            'previous_year_rating': float(request.form.get('previous_year_rating')),
+            'length_of_service': int(request.form.get('length_of_service')),
+            'KPIs_met_gt_80': int(request.form.get('KPIs_met_gt_80')),
+            'awards_won?': int(request.form.get('awards_won')),
+            'avg_training_score': float(request.form.get('avg_training_score'))
+        }
+        
+        # Si les modèles ML sont disponibles, les utiliser
+        if preprocessor_seg is not None and classifier_seg is not None:
+            print("🔮 Utilisation des modèles ML pour la prédiction de segmentation")
+            
+            # Créer DataFrame
+            input_df = pd.DataFrame([data])
+            
+            # Feature Engineering (comme dans train_model.py)
+            input_df['previous_year_rating_norm'] = input_df['previous_year_rating'] * 20
+            input_df['performance_gap'] = input_df['avg_training_score'] - input_df['previous_year_rating_norm']
+            
+            # Prétraitement avec le preprocessor
+            X_processed = preprocessor_seg.transform(input_df)
+            
+            # Prédiction avec le classifier Random Forest
+            segment = classifier_seg.predict(X_processed)[0]
+            
+            print(f"✅ Segment prédit par ML: {segment} ({SEGMENT_NAMES.get(segment)})")
+        else:
+            print("⚠️ Modèles ML non disponibles, utilisation des règles métier")
+            # Sinon, utiliser un système basé sur des règles métier
+            segment = predict_segment_rule_based(data)
+            print(f"✅ Segment prédit par règles: {segment} ({SEGMENT_NAMES.get(segment)})")
+        
+        segment_name = SEGMENT_NAMES.get(segment, "Unknown")
+        
+        # Générer les recommandations
+        recommendation = generate_segmentation_recommendation(segment, segment_name, data)
+        
+        result = {
+            'segment': int(segment),
+            'segment_name': segment_name,
+            'recommendation': recommendation,
+            'data': data
+        }
+        
+        return render_template('resultatseg.html', result=result)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "error": f"Erreur lors de la prédiction de segmentation: {str(e)}"
+        }), 400
+
+
+def predict_segment_rule_based(data):
+    """
+    Prédiction basée sur des règles métier
+    Retourne 0-3 correspondant aux segments :
+    0: Besoin élevé en formation
+    1: Performants moyens
+    2: À développer
+    3: Top talents
+    """
+    score = 0
+    
+    # Critères de performance
+    trainings = data.get('no_of_trainings', 0)
+    rating = data.get('previous_year_rating', 0)
+    avg_score = data.get('avg_training_score', 0)
+    kpis_met = data.get('KPIs_met_gt_80', 0)
+    awards = data.get('awards_won?', 0)
+    
+    # Calcul du score de performance
+    # Formations (max 3 points)
+    if trainings >= 5:
+        score += 3
+    elif trainings >= 3:
+        score += 2
+    elif trainings >= 1:
+        score += 1
+    
+    # Rating année précédente (max 4 points)
+    if rating >= 4.5:
+        score += 4
+    elif rating >= 4.0:
+        score += 3
+    elif rating >= 3.0:
+        score += 2
+    elif rating >= 2.0:
+        score += 1
+    
+    # Score de formation (max 3 points)
+    if avg_score >= 80:
+        score += 3
+    elif avg_score >= 70:
+        score += 2
+    elif avg_score >= 60:
+        score += 1
+    
+    # KPIs atteints (2 points)
+    if kpis_met == 1:
+        score += 2
+    
+    # Prix remportés (3 points)
+    if awards == 1:
+        score += 3
+    
+    # Détermination du segment basé sur le score total (max 15 points)
+    if score >= 12:
+        return 3  # Top talents
+    elif score >= 8:
+        return 2  # À développer
+    elif score >= 4:
+        return 1  # Performants moyens
+    else:
+        return 0  # Besoin élevé en formation
+
+
+def generate_segmentation_recommendation(segment, segment_name, data):
+    """Génère des recommandations personnalisées basées sur le segment"""
+    
+    age = data.get('age', 30)
+    experience = data.get('length_of_service', 5)
+    trainings = data.get('no_of_trainings', 1)
+    avg_score = data.get('avg_training_score', 50)
+    rating = data.get('previous_year_rating', 3.0)
+    
+    if segment == 0:  # Besoin élevé en formation
+        recommandations = []
+        
+        if trainings < 3:
+            recommandations.append({
+                "titre": "📚 Programme de Formation Intensive",
+                "description": "Inscrire immédiatement à minimum 3 formations ciblées sur les compétences clés du poste.",
+                "priorite": "Critique"
+            })
+        
+        if avg_score < 60:
+            recommandations.append({
+                "titre": "🎯 Coaching Individuel",
+                "description": "Assigner un coach dédié pour améliorer les compétences et la performance.",
+                "priorite": "Haute"
+            })
+        
+        if rating < 3.0:
+            recommandations.append({
+                "titre": "📊 Plan d'Amélioration de Performance",
+                "description": "Établir un plan de 90 jours avec des objectifs mesurables et un suivi hebdomadaire.",
+                "priorite": "Critique"
+            })
+        
+        recommandations.extend([
+            {
+                "titre": "👥 Mentorat Professionnel",
+                "description": "Associer avec un senior pour accélérer le développement des compétences.",
+                "priorite": "Haute"
+            },
+            {
+                "titre": "🔍 Évaluation des Compétences",
+                "description": "Réaliser une évaluation complète pour identifier les lacunes spécifiques.",
+                "priorite": "Haute"
+            }
+        ])
+        
+        return {
+            "niveau": "Besoin Élevé en Formation",
+            "couleur": "danger",
+            "icon": "exclamation-triangle",
+            "titre": "🚨 Formation Urgente Requise",
+            "message": "Cet employé nécessite une attention immédiate avec un programme de formation intensif.",
+            "recommandations": recommandations,
+            "actions_immediates": [
+                "📅 Organiser un entretien de développement dans les 48h",
+                "📋 Créer un plan de formation personnalisé sur 3 mois",
+                "👨‍🏫 Assigner un mentor expérimenté",
+                "📊 Établir des objectifs SMART mesurables",
+                "🔄 Programmer des points de suivi bi-hebdomadaires"
+            ]
+        }
+    
+    elif segment == 1:  # Performants moyens
+        recommandations = [
+            {
+                "titre": "📈 Développement Ciblé",
+                "description": "Identifier 2-3 compétences clés à développer pour passer au niveau supérieur.",
+                "priorite": "Moyenne"
+            },
+            {
+                "titre": "🎓 Formations Spécialisées",
+                "description": "Proposer des formations avancées dans le domaine d'expertise.",
+                "priorite": "Moyenne"
+            },
+            {
+                "titre": "🤝 Projets Transverses",
+                "description": "Impliquer dans des projets inter-départements pour élargir les compétences.",
+                "priorite": "Basse"
+            },
+            {
+                "titre": "🎯 Objectifs Ambitieux",
+                "description": "Fixer des objectifs challengeants pour stimuler la progression.",
+                "priorite": "Moyenne"
+            }
+        ]
+        
+        return {
+            "niveau": "Performant Moyen",
+            "couleur": "warning",
+            "icon": "chart-line",
+            "titre": "📊 Potentiel d'Amélioration Identifié",
+            "message": "Employé avec de bonnes bases. Accompagnement ciblé pour atteindre l'excellence.",
+            "recommandations": recommandations,
+            "actions_immediates": [
+                "🎯 Définir 3 objectifs de développement",
+                "📚 Proposer 2 formations spécialisées",
+                "🤝 Assigner un projet stimulant",
+                "📊 Faire un bilan trimestriel",
+                "💡 Encourager l'initiative personnelle"
+            ]
+        }
+    
+    elif segment == 2:  # À développer
+        recommandations = [
+            {
+                "titre": "🌱 Programme de Développement",
+                "description": "Plan structuré sur 6 mois pour développer les soft skills et compétences techniques.",
+                "priorite": "Haute"
+            },
+            {
+                "titre": "💼 Leadership & Communication",
+                "description": "Formations en communication, gestion d'équipe et intelligence émotionnelle.",
+                "priorite": "Haute"
+            },
+            {
+                "titre": "🎯 Projets à Responsabilité",
+                "description": "Confier progressivement des responsabilités pour développer l'autonomie.",
+                "priorite": "Moyenne"
+            },
+            {
+                "titre": "📊 Suivi Régulier",
+                "description": "Points mensuels pour mesurer les progrès et ajuster le plan.",
+                "priorite": "Haute"
+            }
+        ]
+        
+        return {
+            "niveau": "À Développer",
+            "couleur": "info",
+            "icon": "seedling",
+            "titre": "🌱 Potentiel de Croissance Élevé",
+            "message": "Employé avec un fort potentiel. Investissement en développement recommandé.",
+            "recommandations": recommandations,
+            "actions_immediates": [
+                "📋 Créer un plan de développement sur 6 mois",
+                "🎓 Inscrire à 2-3 formations soft skills",
+                "👥 Organiser des sessions de mentorat",
+                "🎯 Fixer des objectifs de progression clairs",
+                "📊 Faire un bilan mensuel des progrès"
+            ]
+        }
+    
+    else:  # Top talents (segment 3)
+        recommandations = [
+            {
+                "titre": "🚀 Fast-Track Promotion",
+                "description": "Préparer activement pour une promotion vers un poste de leadership.",
+                "priorite": "Haute"
+            },
+            {
+                "titre": "🎯 Projets Stratégiques",
+                "description": "Confier des projets critiques et innovants alignés avec la stratégie d'entreprise.",
+                "priorite": "Haute"
+            },
+            {
+                "titre": "👨‍🏫 Devenir Mentor",
+                "description": "Encourager à partager l'expertise en mentorant d'autres employés.",
+                "priorite": "Moyenne"
+            },
+            {
+                "titre": "💰 Package de Rétention",
+                "description": "Proposer un package compétitif (augmentation, bonus, avantages) pour retenir le talent.",
+                "priorite": "Critique"
+            },
+            {
+                "titre": "🌟 Reconnaissance Publique",
+                "description": "Célébrer les réussites et reconnaître publiquement les contributions.",
+                "priorite": "Haute"
+            }
+        ]
+        
+        return {
+            "niveau": "Top Talent",
+            "couleur": "success",
+            "icon": "trophy",
+            "titre": "🏆 Talent Exceptionnel Identifié",
+            "message": "Employé hautement performant. Priorité absolue: rétention et développement.",
+            "recommandations": recommandations,
+            "actions_immediates": [
+                "💰 Réviser immédiatement le package de rémunération",
+                "🚀 Établir un plan de carrière sur 2-3 ans",
+                "🎯 Confier un projet stratégique majeur",
+                "👥 Proposer un rôle de mentor/leader",
+                "🌟 Organiser une reconnaissance formelle",
+                "📊 Entretien trimestriel avec la direction"
+            ]
+        }
 
 
 @app.route('/predict_formation', methods=['POST'])

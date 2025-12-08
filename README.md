@@ -1,49 +1,77 @@
-# 🚀 Système de Prédiction d'Attrition des Employés
+# 🚀 Plateforme d'Analyse RH avec Machine Learning
 
-Application web Flask complète pour prédire le risque d'attrition des employés avec recommandations RH personnalisées, utilisant Random Forest et XGBoost.
+Application web Flask complète pour l'analyse RH avec trois systèmes de prédiction : Attrition, Formation et Segmentation.
 
 ## 📋 Fonctionnalités
 
 ### 🏠 Page d'Accueil
-- Présentation du système et de ses capacités
+- Présentation des 3 systèmes de prédiction
 - Navigation intuitive vers toutes les sections
-- Statistiques du modèle en temps réel
+- Statistiques en temps réel
 
 ### 🔮 Prédiction d'Attrition
 - Formulaire complet avec 30+ variables
-- Prédiction instantanée avec deux modèles (Random Forest & XGBoost)
-- Affichage des probabilités de rétention/attrition
+- Prédiction instantanée avec Random Forest & XGBoost
 - Recommandations personnalisées par niveau de risque
 
-### 📚 Guide des Recommandations RH
-- Stratégies pour employés à risque élevé
-- Meilleures pratiques pour employés stables
-- Indicateurs clés à surveiller
+### 🎓 Analyse de Besoin de Formation
+- Évaluation en 12 critères
+- Prédiction basée sur des règles métier
 - Actions immédiates prioritisées
+
+### 👥 Segmentation des Employés
+- Classification en 4 segments :
+  - **Besoin élevé en formation** : Formation intensive requise
+  - **Performants moyens** : Développement ciblé
+  - **À développer** : Potentiel de croissance élevé
+  - **Top talents** : Fast-track et rétention prioritaire
+- Recommandations personnalisées par segment
+- Actions immédiates adaptées
 
 ## 🛠️ Technologies Utilisées
 
 - **Backend**: Flask 3.0.0
 - **ML Models**: scikit-learn 1.3.2, XGBoost 2.0.3
 - **Data Processing**: pandas 2.1.4, numpy 1.26.2, scipy 1.11.4
-- **Visualisation**: matplotlib 3.8.2, seaborn 0.13.0
+- **Visualisation**: matplotlib 3.8.2, seaborn 0.13.0, plotly 5.18.0
+- **Serialization**: joblib 1.3.2
 - **Containerisation**: Docker & Docker Compose
 
 ## 📊 Modèles de Machine Learning
 
-### Random Forest
-- 100 arbres de décision
-- Optimisé avec GridSearchCV
-- Précision: ~85%
-- Meilleur pour l'interprétabilité
+### 1. Attrition (Random Forest & XGBoost)
+- Précision: ~85-87%
+- Variables: 30+ features
+- Modèles stockés dans `PickleFiles/`
 
-### XGBoost
-- Gradient Boosting optimisé
-- Hyperparamètres tunés avec RandomizedSearchCV
-- Précision: ~87%
-- Meilleur pour la performance
+### 2. Formation (Règles métier)
+- Système basé sur scoring
+- 7 critères pondérés
+- Seuil de décision: score >= 4
+
+### 3. Segmentation (KMeans + Random Forest)
+- 4 clusters d'employés
+- Preprocessing avec ColumnTransformer
+- PCA pour réduction dimensionnelle
+- **Modèles requis** : `preprocessor.joblib`, `pca.joblib`, `kmeans.joblib`, `classifier.joblib`
 
 ## 🔧 Installation et Lancement
+
+### Prérequis pour la Segmentation
+
+Les modèles de segmentation doivent être entraînés avant utilisation. Si vous avez le fichier `train_model.py` dans le dossier `Segmentation/`:
+
+```bash
+cd Segmentation
+python train_model.py
+```
+
+Cela générera les fichiers nécessaires :
+- `preprocessor.joblib`
+- `pca.joblib`
+- `kmeans.joblib`
+- `classifier.joblib`
+- `feature_names.joblib`
 
 ### Méthode 1: Docker (Recommandée)
 
