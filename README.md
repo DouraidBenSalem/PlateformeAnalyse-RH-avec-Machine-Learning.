@@ -183,9 +183,12 @@ Accédez aux recommandations générales via "Voir les Recommandations" pour des
 ## 🔍 API Endpoints
 
 - `GET /` - Page d'accueil
-- `GET /prediction` - Formulaire de prédiction
-- `GET /recommendations` - Guide des recommandations
-- `POST /predict` - Effectuer une prédiction
+- `GET /prediction` - Formulaire de prédiction d'attrition
+- `GET /formation` - Formulaire d'analyse de besoin de formation
+- `GET /segmentation` - Formulaire de segmentation des employés
+- `POST /predict` - Effectuer une prédiction d'attrition
+- `POST /predict_formation` - Effectuer une prédiction de besoin de formation
+- `POST /predict_segmentation` - Effectuer une segmentation
 - `GET /api/health` - Vérification de l'état de l'application
 
 ## ⚠️ Prérequis

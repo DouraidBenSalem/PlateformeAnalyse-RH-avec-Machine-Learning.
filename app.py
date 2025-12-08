@@ -310,6 +310,165 @@ def formation_page():
     return render_template('indexreco.html')
 
 
+@app.route('/dashboard')
+def dashboard():
+    """Dashboard avec visualisations interactives"""
+    try:
+        # Charger les données
+        data_paths = [
+            'Datasets/HR_final_after_clean_encode_transform.csv',
+            'Datasets/data_FINAL_with_segments.csv',
+            'HR_final_after_clean_encode_transform.csv',
+            'data_FINAL_with_segments.csv'
+        ]
+        
+        df_hr = None
+        df_seg = None
+        
+        for path in data_paths:
+            if os.path.exists(path) and 'HR_final' in path:
+                df_hr = pd.read_csv(path)
+                print(f"✅ Données HR chargées depuis {path}")
+                break
+        
+        for path in data_paths:
+            if os.path.exists(path) and 'segments' in path:
+                try:
+                    df_seg = pd.read_csv(path, delimiter=';')
+                    print(f"✅ Données de segmentation chargées depuis {path}")
+                except:
+                    df_seg = pd.read_csv(path)
+                    print(f"✅ Données de segmentation chargées depuis {path}")
+                break
+        
+        graphs = {}
+        stats = {}
+        
+        # === VISUALISATIONS ATTRITION ===
+        if df_hr is not None:
+            # Stats générales
+            stats['total_employees_hr'] = len(df_hr)
+            if 'Attrition' in df_hr.columns:
+                stats['attrition_rate'] = round((df_hr['Attrition'].sum() / len(df_hr)) * 100, 1)
+                stats['retention_rate'] = round(100 - stats['attrition_rate'], 1)
+            
+            # 1. Distribution de l'attrition (Pie Chart)
+            if 'Attrition' in df_hr.columns:
+                attrition_counts = df_hr['Attrition'].value_counts()
+                fig_attrition = px.pie(
+                    values=attrition_counts.values,
+                    names=['Rétention', 'Attrition'],
+                    title='Distribution Attrition vs Rétention',
+                    hole=0.4,
+                    color_discrete_sequence=['#51cf66', '#ff6b6b']
+                )
+                graphs['attrition_pie'] = json.dumps(fig_attrition, cls=plotly.utils.PlotlyJSONEncoder)
+            
+            # 2. Attrition par Département (Bar Chart)
+            if 'Department' in df_hr.columns and 'Attrition' in df_hr.columns:
+                dept_attrition = df_hr.groupby('Department')['Attrition'].agg(['sum', 'count'])
+                dept_attrition['rate'] = (dept_attrition['sum'] / dept_attrition['count'] * 100).round(1)
+                fig_dept = px.bar(
+                    x=dept_attrition.index,
+                    y=dept_attrition['rate'],
+                    title='Taux d\'Attrition par Département (%)',
+                    labels={'x': 'Département', 'y': 'Taux d\'Attrition (%)'},
+                    color=dept_attrition['rate'],
+                    color_continuous_scale='Reds'
+                )
+                graphs['dept_bar'] = json.dumps(fig_dept, cls=plotly.utils.PlotlyJSONEncoder)
+            
+            # 3. Distribution des âges (Histogram)
+            if 'Age' in df_hr.columns:
+                fig_age = px.histogram(
+                    df_hr,
+                    x='Age',
+                    nbins=20,
+                    title='Distribution des Âges',
+                    labels={'Age': 'Âge', 'count': 'Nombre d\'employés'},
+                    color_discrete_sequence=['#667eea']
+                )
+                graphs['age_hist'] = json.dumps(fig_age, cls=plotly.utils.PlotlyJSONEncoder)
+            
+            # 4. Satisfaction vs Attrition (Box Plot)
+            if 'JobSatisfaction' in df_hr.columns and 'Attrition' in df_hr.columns:
+                fig_satisfaction = px.box(
+                    df_hr,
+                    x='Attrition',
+                    y='JobSatisfaction',
+                    title='Satisfaction au Travail vs Attrition',
+                    labels={'Attrition': 'Attrition', 'JobSatisfaction': 'Satisfaction'},
+                    color='Attrition',
+                    color_discrete_map={0: '#51cf66', 1: '#ff6b6b'}
+                )
+                graphs['satisfaction_box'] = json.dumps(fig_satisfaction, cls=plotly.utils.PlotlyJSONEncoder)
+            
+            # 5. Revenu vs Attrition (Violin Plot)
+            if 'MonthlyIncome' in df_hr.columns and 'Attrition' in df_hr.columns:
+                fig_income = px.violin(
+                    df_hr,
+                    x='Attrition',
+                    y='MonthlyIncome',
+                    title='Revenu Mensuel vs Attrition',
+                    labels={'Attrition': 'Attrition', 'MonthlyIncome': 'Revenu Mensuel'},
+                    color='Attrition',
+                    box=True,
+                    color_discrete_map={0: '#51cf66', 1: '#ff6b6b'}
+                )
+                graphs['income_violin'] = json.dumps(fig_income, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        # === VISUALISATIONS SEGMENTATION ===
+        if df_seg is not None:
+            stats['total_employees_seg'] = len(df_seg)
+            
+            # 6. Distribution des Segments (Pie Chart)
+            if 'segment_name' in df_seg.columns:
+                seg_counts = df_seg['segment_name'].value_counts()
+                fig_segments = px.pie(
+                    values=seg_counts.values,
+                    names=seg_counts.index,
+                    title='Répartition des Segments RH',
+                    hole=0.4,
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                graphs['segments_pie'] = json.dumps(fig_segments, cls=plotly.utils.PlotlyJSONEncoder)
+            
+            # 7. Score de Formation par Segment (Violin Plot)
+            if 'segment_name' in df_seg.columns and 'avg_training_score' in df_seg.columns:
+                fig_training = px.violin(
+                    df_seg,
+                    x='segment_name',
+                    y='avg_training_score',
+                    title='Score de Formation par Segment',
+                    color='segment_name',
+                    box=True,
+                    points='all'
+                )
+                fig_training.update_layout(showlegend=False)
+                graphs['training_violin'] = json.dumps(fig_training, cls=plotly.utils.PlotlyJSONEncoder)
+            
+            # 8. Performance vs Formation (Scatter)
+            if all(col in df_seg.columns for col in ['previous_year_rating', 'avg_training_score', 'segment_name']):
+                fig_perf = px.scatter(
+                    df_seg,
+                    x='previous_year_rating',
+                    y='avg_training_score',
+                    color='segment_name',
+                    title='Performance vs Score de Formation',
+                    labels={'previous_year_rating': 'Évaluation Année N-1', 'avg_training_score': 'Score Formation'},
+                    size='length_of_service' if 'length_of_service' in df_seg.columns else None,
+                    hover_data=['department'] if 'department' in df_seg.columns else None
+                )
+                graphs['perf_scatter'] = json.dumps(fig_perf, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        return render_template('dashboard.html', graphs=graphs, stats=stats)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return render_template('error.html', message=f"Erreur lors du chargement du dashboard: {str(e)}")
+
+
 @app.route('/predict_segmentation', methods=['POST'])
 def predict_segmentation():
     """Effectue la prédiction du segment employé"""
