@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard RH Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #764ba2;
+        }
+        .header-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .header-card h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .chart-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 40px 0 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            text-align: center;
+        }
+        .icon-stat {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        .icon-danger { color: #ff6b6b; }
+        .icon-success { color: #51cf66; }
+        .icon-info { color: #4dabf7; }
+        .icon-warning { color: #ffd43b; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Navigation -->
+        <nav>
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/prediction"><i class="fas fa-user-check"></i> Attrition</a>
+            <a href="/formation"><i class="fas fa-graduation-cap"></i> Formation</a>
+            <a href="/segmentation"><i class="fas fa-users"></i> Segmentation</a>
+            <a href="/performance"><i class="fas fa-chart-line"></i> Performance</a>
+        </nav>
+
+        <!-- Header -->
+        <div class="header-card">
+            <h1><i class="fas fa-chart-pie me-3"></i>Dashboard Analytics RH</h1>
+            <p class="text-muted">Visualisations interactives des données d'attrition et de segmentation</p>
+        </div>
+
+        <!-- KPIs -->
+        {% if stats %}
+        <div class="stats-grid">
+            {% if stats.total_employees_hr %}
+            <div class="stat-card">
+                <div class="icon-stat icon-info">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value">{{ stats.total_employees_hr }}</div>
+                <div class="stat-label">Employés Totaux (HR)</div>
+            </div>
+            {% endif %}
+            
+            {% if stats.attrition_rate %}
+            <div class="stat-card">
+                <div class="icon-stat icon-danger">
+                    <i class="fas fa-user-minus"></i>
+                </div>
+                <div class="stat-value">{{ stats.attrition_rate }}%</div>
+                <div class="stat-label">Taux d'Attrition</div>
+            </div>
+            {% endif %}
+            
+            {% if stats.retention_rate %}
+            <div class="stat-card">
+                <div class="icon-stat icon-success">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-value">{{ stats.retention_rate }}%</div>
+                <div class="stat-label">Taux de Rétention</div>
+            </div>
+            {% endif %}
+            
+            {% if stats.total_employees_seg %}
+            <div class="stat-card">
+                <div class="icon-stat icon-warning">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="stat-value">{{ stats.total_employees_seg }}</div>
+                <div class="stat-label">Employés Segmentés</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Section Attrition -->
+        {% if graphs.attrition_pie or graphs.dept_bar or graphs.age_hist %}
+        <div class="section-title">
+            <i class="fas fa-user-times me-2"></i>Analyse de l'Attrition
+        </div>
+
+        <div class="chart-row">
+            {% if graphs.attrition_pie %}
+            <div class="chart-container">
+                <div id="attrition-pie"></div>
+            </div>
+            {% endif %}
+            
+            {% if graphs.dept_bar %}
+            <div class="chart-container">
+                <div id="dept-bar"></div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="chart-row">
+            {% if graphs.age_hist %}
+            <div class="chart-container">
+                <div id="age-hist"></div>
+            </div>
+            {% endif %}
+            
+            {% if graphs.satisfaction_box %}
+            <div class="chart-container">
+                <div id="satisfaction-box"></div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if graphs.income_violin %}
+        <div class="chart-container">
+            <div id="income-violin"></div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Section Segmentation -->
+        {% if graphs.segments_pie or graphs.training_violin or graphs.perf_scatter %}
+        <div class="section-title">
+            <i class="fas fa-layer-group me-2"></i>Analyse de Segmentation
+        </div>
+
+        <div class="chart-row">
+            {% if graphs.segments_pie %}
+            <div class="chart-container">
+                <div id="segments-pie"></div>
+            </div>
+            {% endif %}
+            
+            {% if graphs.training_violin %}
+            <div class="chart-container">
+                <div id="training-violin"></div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if graphs.perf_scatter %}
+        <div class="chart-container">
+            <div id="perf-scatter"></div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="text-center text-white mt-5 mb-3">
+            <p><i class="fas fa-chart-line me-2"></i>Dashboard propulsé par Plotly & Machine Learning</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        // Configuration Plotly
+        const config = {responsive: true, displayModeBar: true};
+
+        // Attrition Pie
+        {% if graphs.attrition_pie %}
+        const attritionPie = {{ graphs.attrition_pie | safe }};
+        Plotly.newPlot('attrition-pie', attritionPie.data, attritionPie.layout, config);
+        {% endif %}
+
+        // Department Bar
+        {% if graphs.dept_bar %}
+        const deptBar = {{ graphs.dept_bar | safe }};
+        Plotly.newPlot('dept-bar', deptBar.data, deptBar.layout, config);
+        {% endif %}
+
+        // Age Histogram
+        {% if graphs.age_hist %}
+        const ageHist = {{ graphs.age_hist | safe }};
+        Plotly.newPlot('age-hist', ageHist.data, ageHist.layout, config);
+        {% endif %}
+
+        // Satisfaction Box
+        {% if graphs.satisfaction_box %}
+        const satisfactionBox = {{ graphs.satisfaction_box | safe }};
+        Plotly.newPlot('satisfaction-box', satisfactionBox.data, satisfactionBox.layout, config);
+        {% endif %}
+
+        // Income Violin
+        {% if graphs.income_violin %}
+        const incomeViolin = {{ graphs.income_violin | safe }};
+        Plotly.newPlot('income-violin', incomeViolin.data, incomeViolin.layout, config);
+        {% endif %}
+
+        // Segments Pie
+        {% if graphs.segments_pie %}
+        const segmentsPie = {{ graphs.segments_pie | safe }};
+        Plotly.newPlot('segments-pie', segmentsPie.data, segmentsPie.layout, config);
+        {% endif %}
+
+        // Training Violin
+        {% if graphs.training_violin %}
+        const trainingViolin = {{ graphs.training_violin | safe }};
+        Plotly.newPlot('training-violin', trainingViolin.data, trainingViolin.layout, config);
+        {% endif %}
+
+        // Performance Scatter
+        {% if graphs.perf_scatter %}
+        const perfScatter = {{ graphs.perf_scatter | safe }};
+        Plotly.newPlot('perf-scatter', perfScatter.data, perfScatter.layout, config);
+        {% endif %}
+    </script>
+</body>
+</html>

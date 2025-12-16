@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultat de la Prédiction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .result-container {
+            padding: 40px;
+        }
+
+        .prediction-box {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* performance faible/moyenne */
+        .prediction-box.low-perf {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        /* bonne / excellente performance */
+        .prediction-box.high-perf {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+        }
+
+        .prediction-box h2 {
+            font-size: 2.2em;
+            margin-bottom: 5px;
+        }
+
+        .prediction-box .rating {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .data-summary {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .data-summary h3 {
+            color: #495057;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .data-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .data-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .data-item span {
+            color: #495057;
+            font-size: 1.05em;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Résultat de la Prédiction</h1>
+            <p>Évaluation de la performance de l'employé</p>
+        </div>
+
+        <div class="result-container">
+
+        
+            <div class="prediction-box {% if is_low_perf %}low-perf{% else %}high-perf{% endif %}">
+                <h2>{{ label }}</h2>
+                <div class="rating">Classe de performance prédite : <strong>{{ prediction }}</strong> / 4</div>
+            </div>
+
+
+            <!-- Résumé des données saisies -->
+            <div class="data-summary">
+                <h3>📋 Résumé des données saisies</h3>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <strong>% d’augmentation salariale</strong>
+                        <span>{{ percent_hike }} %</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Satisfaction au travail (1–4)</strong>
+                        <span>{{ job_satisfaction }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Implication au travail (1–4)</strong>
+                        <span>{{ job_involvement }}</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Années dans le poste actuel</strong>
+                        <span>{{ years_in_role }} an(s)</span>
+                    </div>
+                    <div class="data-item">
+                        <strong>Années depuis la dernière promotion</strong>
+                        <span>{{ years_since_last_promotion }} an(s)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons -->
+            <div class="button-container">
+                <a href="/performance" class="btn btn-primary">🔄 Nouvelle prédiction</a>
+                <button onclick="window.print()" class="btn btn-secondary">🖨️ Imprimer</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

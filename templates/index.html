@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction d'Attrition des Employés</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #764ba2;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Prédiction d'Attrition des Employés</h1>
+            <p>Système de prédiction basé sur Random Forest</p>
+        </div>
+
+        <nav>
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        </nav>
+
+        <div class="form-container">
+            <div class="info-box">
+                <p><strong>ℹ️ Information:</strong> Remplissez ce formulaire pour prédire si un employé risque de quitter l'entreprise. Le modèle utilise un Random Forest optimisé.</p>
+            </div>
+
+            <form action="/predict" method="POST">
+                <!-- Informations Démographiques -->
+                <div class="form-section">
+                    <h2>📋 Informations Démographiques</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="Age">Âge *</label>
+                            <input type="number" id="Age" name="Age" required min="18" max="65" value="35">
+                        </div>
+                        <div class="form-group">
+                            <label for="Gender">Genre *</label>
+                            <select id="Gender" name="Gender" required>
+                                <option value="Male">Homme</option>
+                                <option value="Female">Femme</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="MaritalStatus">État Civil *</label>
+                            <select id="MaritalStatus" name="MaritalStatus" required>
+                                <option value="Single">Célibataire</option>
+                                <option value="Married">Marié(e)</option>
+                                <option value="Divorced">Divorcé(e)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="DistanceFromHome">Distance Domicile-Travail (km) *</label>
+                            <input type="number" id="DistanceFromHome" name="DistanceFromHome" required min="0" max="50" value="10">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations Professionnelles -->
+                <div class="form-section">
+                    <h2>💼 Informations Professionnelles</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="Department">Département *</label>
+                            <select id="Department" name="Department" required>
+                                <option value="Sales">Ventes</option>
+                                <option value="Research & Development">R&D</option>
+                                <option value="Human Resources">RH</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="JobRole">Poste *</label>
+                            <select id="JobRole" name="JobRole" required>
+                                <option value="Sales Executive">Commercial</option>
+                                <option value="Research Scientist">Chercheur</option>
+                                <option value="Laboratory Technician">Technicien</option>
+                                <option value="Manufacturing Director">Directeur Production</option>
+                                <option value="Healthcare Representative">Représentant Santé</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Sales Representative">Représentant Commercial</option>
+                                <option value="Research Director">Directeur Recherche</option>
+                                <option value="Human Resources">RH</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="JobLevel">Niveau de Poste *</label>
+                            <select id="JobLevel" name="JobLevel" required>
+                                <option value="1">1 (Junior)</option>
+                                <option value="2">2 (Intermédiaire)</option>
+                                <option value="3">3 (Senior)</option>
+                                <option value="4">4 (Expert)</option>
+                                <option value="5">5 (Directeur)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="YearsAtCompany">Années dans l'entreprise *</label>
+                            <input type="number" id="YearsAtCompany" name="YearsAtCompany" required min="0" max="40" value="5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expérience et Formation -->
+                <div class="form-section">
+                    <h2>🎓 Expérience et Formation</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="Education">Niveau d'Éducation *</label>
+                            <select id="Education" name="Education" required>
+                                <option value="1">1 (Secondaire)</option>
+                                <option value="2">2 (Bac)</option>
+                                <option value="3">3 (Licence)</option>
+                                <option value="4">4 (Master)</option>
+                                <option value="5">5 (Doctorat)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="EducationField">Domaine d'Études *</label>
+                            <select id="EducationField" name="EducationField" required>
+                                <option value="Life Sciences">Sciences de la Vie</option>
+                                <option value="Medical">Médical</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Technical Degree">Technique</option>
+                                <option value="Other">Autre</option>
+                                <option value="Human Resources">RH</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="TotalWorkingYears">Total Années d'Expérience *</label>
+                            <input type="number" id="TotalWorkingYears" name="TotalWorkingYears" required min="0" max="40" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="NumCompaniesWorked">Nombre d'Entreprises Précédentes *</label>
+                            <input type="number" id="NumCompaniesWorked" name="NumCompaniesWorked" required min="0" max="10" value="2">
+                        </div>
+                        <div class="form-group">
+                            <label for="TrainingTimesLastYear">Formations l'Année Dernière *</label>
+                            <input type="number" id="TrainingTimesLastYear" name="TrainingTimesLastYear" required min="0" max="10" value="2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rémunération -->
+                <div class="form-section">
+                    <h2>💰 Rémunération</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="MonthlyIncome">Revenu Mensuel ($) *</label>
+                            <input type="number" id="MonthlyIncome" name="MonthlyIncome" required min="1000" max="20000" value="5000">
+                        </div>
+                        <div class="form-group">
+                            <label for="MonthlyRate">Taux Mensuel *</label>
+                            <input type="number" id="MonthlyRate" name="MonthlyRate" required min="2000" max="30000" value="15000">
+                        </div>
+                        <div class="form-group">
+                            <label for="DailyRate">Taux Journalier *</label>
+                            <input type="number" id="DailyRate" name="DailyRate" required min="100" max="2000" value="800">
+                        </div>
+                        <div class="form-group">
+                            <label for="HourlyRate">Taux Horaire *</label>
+                            <input type="number" id="HourlyRate" name="HourlyRate" required min="30" max="100" value="65">
+                        </div>
+                        <div class="form-group">
+                            <label for="PercentSalaryHike">% Augmentation Salariale *</label>
+                            <input type="number" id="PercentSalaryHike" name="PercentSalaryHike" required min="11" max="25" value="15">
+                        </div>
+                        <div class="form-group">
+                            <label for="StockOptionLevel">Niveau d'Actions *</label>
+                            <select id="StockOptionLevel" name="StockOptionLevel" required>
+                                <option value="0">0 (Aucune)</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conditions de Travail -->
+                <div class="form-section">
+                    <h2>⚙️ Conditions de Travail</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="BusinessTravel">Voyages Professionnels *</label>
+                            <select id="BusinessTravel" name="BusinessTravel" required>
+                                <option value="Non-Travel">Pas de voyage</option>
+                                <option value="Travel_Rarely">Rarement</option>
+                                <option value="Travel_Frequently">Fréquemment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="OverTime">Heures Supplémentaires *</label>
+                            <select id="OverTime" name="OverTime" required>
+                                <option value="No">Non</option>
+                                <option value="Yes">Oui</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="WorkLifeBalance">Équilibre Vie-Travail *</label>
+                            <select id="WorkLifeBalance" name="WorkLifeBalance" required>
+                                <option value="1">1 (Mauvais)</option>
+                                <option value="2">2 (Correct)</option>
+                                <option value="3">3 (Bon)</option>
+                                <option value="4">4 (Excellent)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="YearsInCurrentRole">Années dans le Poste Actuel *</label>
+                            <input type="number" id="YearsInCurrentRole" name="YearsInCurrentRole" required min="0" max="20" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="YearsSinceLastPromotion">Années depuis la Dernière Promotion *</label>
+                            <input type="number" id="YearsSinceLastPromotion" name="YearsSinceLastPromotion" required min="0" max="15" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="YearsWithCurrManager">Années avec le Manager Actuel *</label>
+                            <input type="number" id="YearsWithCurrManager" name="YearsWithCurrManager" required min="0" max="20" value="3">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Satisfaction -->
+                <div class="form-section">
+                    <h2>😊 Satisfaction et Performance</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="EnvironmentSatisfaction">Satisfaction Environnement *</label>
+                            <select id="EnvironmentSatisfaction" name="EnvironmentSatisfaction" required>
+                                <option value="1">1 (Très Insatisfait)</option>
+                                <option value="2">2 (Insatisfait)</option>
+                                <option value="3">3 (Satisfait)</option>
+                                <option value="4">4 (Très Satisfait)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="JobSatisfaction">Satisfaction Travail *</label>
+                            <select id="JobSatisfaction" name="JobSatisfaction" required>
+                                <option value="1">1 (Très Insatisfait)</option>
+                                <option value="2">2 (Insatisfait)</option>
+                                <option value="3">3 (Satisfait)</option>
+                                <option value="4">4 (Très Satisfait)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="RelationshipSatisfaction">Satisfaction Relations *</label>
+                            <select id="RelationshipSatisfaction" name="RelationshipSatisfaction" required>
+                                <option value="1">1 (Très Insatisfait)</option>
+                                <option value="2">2 (Insatisfait)</option>
+                                <option value="3">3 (Satisfait)</option>
+                                <option value="4">4 (Très Satisfait)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="JobInvolvement">Implication au Travail *</label>
+                            <select id="JobInvolvement" name="JobInvolvement" required>
+                                <option value="1">1 (Très Faible)</option>
+                                <option value="2">2 (Faible)</option>
+                                <option value="3">3 (Élevée)</option>
+                                <option value="4">4 (Très Élevée)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="PerformanceRating">Évaluation Performance *</label>
+                            <select id="PerformanceRating" name="PerformanceRating" required>
+                                <option value="3">3 (Bon)</option>
+                                <option value="4">4 (Excellent)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">🔮 Prédire le Risque d'Attrition</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

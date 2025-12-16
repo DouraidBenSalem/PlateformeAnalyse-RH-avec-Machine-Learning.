@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système de Prédiction RH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .main-content {
+            padding: 60px 40px;
+        }
+
+        .intro-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .intro-section h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .intro-section p {
+            color: #555;
+            font-size: 1.2em;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-card .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .cta-card {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .cta-card:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .cta-card:hover h3,
+        .cta-card:hover p {
+            color: white;
+        }
+
+        .cta-card:hover .cta-btn {
+            background: white;
+            color: #667eea;
+        }
+
+        .cta-card .icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .cta-card h3 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .cta-card p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .cta-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .stats-section {
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 15px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            padding: 20px;
+        }
+
+        .stat-item .number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-item .label {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Système de Prédiction RH Intelligent</h1>
+            <p>Intelligence Artificielle au Service des Ressources Humaines</p>
+        </div>
+
+        <div class="main-content">
+            <div class="intro-section">
+                <h2>Bienvenue dans votre Solution RH Intelligente</h2>
+                <p>
+                    Notre système utilise l'intelligence artificielle et le Machine Learning pour vous aider à 
+                    anticiper l'attrition, identifier les besoins de formation et optimiser la gestion de vos talents. 
+                    Basé sur des modèles Random Forest et XGBoost optimisés.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h3>IA Avancée</h3>
+                    <p>Modèles Random Forest et XGBoost avec optimisation GridSearchCV pour des prédictions précises</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">💡</div>
+                    <h3>Recommandations Personnalisées</h3>
+                    <p>Conseils actionables adaptés à chaque situation pour retenir vos talents</p>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <div class="cta-card">
+                    <div class="icon">🔮</div>
+                    <h3>Prédire l'Attrition</h3>
+                    <p>Analysez le risque de départ d'un employé en quelques clics</p>
+                    <a href="/prediction" class="cta-btn">Lancer une Prédiction</a>
+                </div>
+
+                <div class="cta-card">
+                    <div class="icon">🎓</div>
+                    <h3>Besoin de Formation</h3>
+                    <p>Identifiez les besoins de formation de vos employés</p>
+                    <a href="/formation" class="cta-btn">Analyser les Besoins</a>
+                </div>
+
+                <div class="cta-card">
+                    <div class="icon">👥</div>
+                    <h3>Segmentation RH</h3>
+                    <p>Classez vos employés en segments pour un management ciblé</p>
+                    <a href="/segmentation" class="cta-btn">Segmenter</a>
+                </div>
+
+                <div class="cta-card">
+                    <div class="icon">🔍</div>
+                    <h3>Clustering d'Employés</h3>
+                    <p>Identifiez les profils similaires par clustering HDBSCAN</p>
+                    <a href="/clustering" class="cta-btn">Analyser</a>
+                </div>
+
+                <div class="cta-card">
+                    <div class="icon">📊</div>
+                    <h3>Dashboard Analytics</h3>
+                    <p>Visualisez vos données RH avec des graphiques interactifs</p>
+                    <a href="/dashboard" class="cta-btn">Explorer</a>
+                </div>
+
+                <!--OUMA: Prediction Perfermance--> 
+                <div class="cta-card">
+                    <div class="icon">📈</div>
+                    <h3>Prédire la Performance</h3>
+                    <p>Analysez la performance d'un employé en quelques clics</p>
+                    <a href="/performance" class="cta-btn">Lancer une Prédiction</a>
+                </div>
+
+            </div>
+
+            <div class="stats-section">
+                <h2 style="color: #667eea; margin-bottom: 10px;">Notre Système en Chiffres</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="number">5</div>
+                        <div class="label">Modules Disponibles</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">30+</div>
+                        <div class="label">Variables Analysées</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">85%+</div>
+                        <div class="label">Précision des Modèles</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">Real-time</div>
+                        <div class="label">Prédiction Instantanée</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Système de Prédiction RH | Projet ML - 4BI4</p>
+        </footer>
+    </div>
+</body>
+</html>

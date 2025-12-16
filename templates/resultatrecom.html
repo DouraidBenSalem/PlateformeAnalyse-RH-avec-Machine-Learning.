@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse du Besoin de Formation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        nav {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #764ba2;
+        }
+        .result-header {
+            border-radius: 15px 15px 0 0;
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+        .header-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .header-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        .badge-formation {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            border-radius: 50px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+        .icon-large {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .recommendation-card {
+            border-left: 5px solid;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        .recommendation-card:hover {
+            transform: translateX(5px);
+        }
+        .recommendation-card.priorite-critique {
+            background: #fff5f5;
+            border-color: #dc3545;
+        }
+        .recommendation-card.priorite-haute {
+            background: #fff8e1;
+            border-color: #ffc107;
+        }
+        .recommendation-card.priorite-moyenne {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        .recommendation-card.priorite-basse {
+            background: #f1f8e9;
+            border-color: #8bc34a;
+        }
+        .action-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 25px;
+            background: white;
+            font-weight: 600;
+        }
+        .detail-item {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        .btn-new {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            transition: transform 0.2s;
+            font-size: 1.1rem;
+        }
+        .btn-new:hover {
+            transform: scale(1.05);
+            color: white;
+        }
+        .info-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Navigation -->
+        <!--<nav>
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/prediction"><i class="fas fa-chart-line"></i> Prédiction Attrition</a>
+            <a href="/formation"><i class="fas fa-graduation-cap"></i> Nouvelle Analyse Formation</a>
+        </nav>-->
+        <nav>
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        </nav>
+
+        <!-- Résultat Principal -->
+        <div class="card">
+            <div class="result-header header-{{ result.recommendation.couleur }}">
+                <i class="fas fa-{{ result.recommendation.icon }} icon-large"></i>
+                <h1>{{ result.recommendation.titre }}</h1>
+                <div class="badge-formation bg-{{ result.recommendation.formation_couleur }}">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    {{ result.recommendation.formation_necessaire }}
+                </div>
+                <p class="lead mt-3">{{ result.recommendation.message }}</p>
+            </div>
+            
+            <div class="card-body p-4">
+                <!-- Analyse et Raison -->
+                <div class="info-section">
+                    <h4><i class="fas fa-microscope me-2 text-primary"></i>Analyse Détaillée</h4>
+                    <p class="mb-0 lead">{{ result.recommendation.raison }}</p>
+                </div>
+
+                <!-- Actions Immédiates -->
+                <div class="mt-4">
+                    <h4><i class="fas fa-bolt me-2 text-warning"></i>Actions Immédiates Recommandées</h4>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        {% for action in result.recommendation.actions_immediates %}
+                        <span class="action-badge">{{ action }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Recommandations Détaillées -->
+                <div class="mt-5">
+                    <h4><i class="fas fa-list-check me-2 text-success"></i>Plan de Formation Recommandé</h4>
+                    <p class="text-muted">Recommandations personnalisées basées sur le profil analysé</p>
+                    
+                    {% for rec in result.recommendation.recommandations %}
+                    <div class="recommendation-card priorite-{{ rec.priorite|lower }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex: 1;">
+                                <h5 class="mb-2">
+                                    {{ rec.titre }}
+                                    <span class="badge bg-{{ 'danger' if rec.priorite == 'Critique' else 'warning' if rec.priorite == 'Haute' else 'info' if rec.priorite == 'Moyenne' else 'success' }} ms-2">
+                                        {{ rec.priorite }}
+                                    </span>
+                                </h5>
+                                <p class="mb-0 text-muted">{{ rec.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Statistiques du Profil -->
+                <div class="mt-5">
+                    <h4><i class="fas fa-chart-bar me-2 text-info"></i>Indicateurs Clés du Profil</h4>
+                    <div class="row mt-3">
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="fas fa-briefcase text-primary" style="font-size: 2rem;"></i>
+                                    <h3 class="mt-2">{{ result.input_data.experience }}</h3>
+                                    <p class="text-muted mb-0">Années d'exp.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="fas fa-clock text-success" style="font-size: 2rem;"></i>
+                                    <h3 class="mt-2">{{ result.input_data.training_hours }}</h3>
+                                    <p class="text-muted mb-0">Heures formation</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="fas fa-users text-info" style="font-size: 2rem;"></i>
+                                    <h3 class="mt-2">{{ result.input_data.company_size|int }}</h3>
+                                    <p class="text-muted mb-0">Taille entreprise</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <i class="fas fa-calendar text-warning" style="font-size: 2rem;"></i>
+                                    <h3 class="mt-2">{{ result.input_data.last_new_job|int }}</h3>
+                                    <p class="text-muted mb-0">Ans dernier poste</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Détails Complets du Profil -->
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>Profil Complet de l'Employé</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <span><i class="fas fa-map-marker-alt text-primary me-2"></i><strong>Ville</strong></span>
+                            <span>{{ result.input_data.city }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-chart-line text-success me-2"></i><strong>Indice développement</strong></span>
+                            <span>{{ "%.3f"|format(result.input_data.city_development_index) }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-venus-mars text-info me-2"></i><strong>Genre</strong></span>
+                            <span>{{ result.input_data.gender }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-star text-warning me-2"></i><strong>Expérience pertinente</strong></span>
+                            <span>{{ 'Oui' if 'Has relevent' in result.input_data.relevent_experience else 'Non' }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-university text-primary me-2"></i><strong>Université</strong></span>
+                            <span>{{ result.input_data.enrolled_university }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-graduation-cap text-success me-2"></i><strong>Niveau éducation</strong></span>
+                            <span>{{ result.input_data.education_level }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <span><i class="fas fa-book text-info me-2"></i><strong>Discipline</strong></span>
+                            <span>{{ result.input_data.major_discipline }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-briefcase text-warning me-2"></i><strong>Expérience</strong></span>
+                            <span>{{ result.input_data.experience }} ans</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-building text-primary me-2"></i><strong>Taille entreprise</strong></span>
+                            <span>{{ result.input_data.company_size|int }} employés</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-industry text-success me-2"></i><strong>Type entreprise</strong></span>
+                            <span>{{ result.input_data.company_type }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-exchange-alt text-info me-2"></i><strong>Dernier changement</strong></span>
+                            <span>{{ result.input_data.last_new_job|int }} ans</span>
+                        </div>
+                        <div class="detail-item">
+                            <span><i class="fas fa-chalkboard-teacher text-warning me-2"></i><strong>Heures formation</strong></span>
+                            <span>{{ result.input_data.training_hours }}h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons d'Action -->
+        <div class="text-center mb-4">
+            <a href="/formation" class="btn btn-new">
+                <i class="fas fa-plus-circle me-2"></i>Nouvelle Analyse
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-light ms-3">
+                <i class="fas fa-print me-2"></i>Imprimer le Rapport
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-white-50 mt-4">
+            <small>
+                <i class="fas fa-shield-alt"></i> Analyse Confidentielle | 
+                <i class="fas fa-robot"></i> Propulsé par IA & Machine Learning |
+                <i class="fas fa-check-circle"></i> Système RH Intégré
+            </small>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

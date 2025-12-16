@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultat de Segmentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #764ba2;
+        }
+        
+        /* Header en fonction du segment */
+        .result-header {
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 15px 15px 0 0;
+            color: white;
+        }
+        .header-danger { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .header-warning { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .header-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .header-success { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+        
+        .segment-badge {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .segment-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Recommandations */
+        .recommendation-card {
+            background: white;
+            border-left: 4px solid;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        .recommendation-card:hover {
+            transform: translateX(5px);
+        }
+        .priorite-critique { border-left-color: #dc3545; }
+        .priorite-haute { border-left-color: #fd7e14; }
+        .priorite-moyenne { border-left-color: #ffc107; }
+        .priorite-basse { border-left-color: #28a745; }
+        
+        .priority-badge {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .badge-critique { background: #dc3545; color: white; }
+        .badge-haute { background: #fd7e14; color: white; }
+        .badge-moyenne { background: #ffc107; color: #333; }
+        .badge-basse { background: #28a745; color: white; }
+        
+        /* Données employé */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .data-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+        .data-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .data-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        /* Actions immédiates */
+        .action-item {
+            background: #e7f3ff;
+            border-left: 4px solid #0d6efd;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .btn-custom {
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-outline-custom {
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+        .btn-outline-custom:hover {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Navigation -->
+        <!--<nav>
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/prediction"><i class="fas fa-user-check"></i> Attrition</a>
+            <a href="/formation"><i class="fas fa-graduation-cap"></i> Formation</a>
+            <a href="/segmentation"><i class="fas fa-users"></i> Segmentation</a>
+            <a href="/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+        </nav>-->
+
+
+        <nav>
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        </nav>
+
+        <!-- Carte de résultat -->
+        <div class="card">
+            <!-- Header avec le résultat -->
+            <div class="result-header header-{{ result.recommendation.couleur }}">
+                <div class="segment-icon">
+                    <i class="fas fa-{{ result.recommendation.icon }}"></i>
+                </div>
+                <div class="segment-badge">{{ result.segment_name }}</div>
+                <h4>{{ result.recommendation.titre }}</h4>
+                <p class="mb-0">{{ result.recommendation.message }}</p>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Profil de l'employé -->
+                <h5 class="mb-3"><i class="fas fa-user-circle me-2"></i>Profil de l'Employé</h5>
+                <div class="data-grid">
+                    <div class="data-card">
+                        <div class="data-label">Département</div>
+                        <div class="data-value">{{ result.data.department }}</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Région</div>
+                        <div class="data-value">{{ result.data.region }}</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Âge</div>
+                        <div class="data-value">{{ result.data.age }} ans</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Années Service</div>
+                        <div class="data-value">{{ result.data.length_of_service }} ans</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Formations</div>
+                        <div class="data-value">{{ result.data.no_of_trainings }}</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Évaluation N-1</div>
+                        <div class="data-value">{{ result.data.previous_year_rating }}/5</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Score Formation</div>
+                        <div class="data-value">{{ result.data.avg_training_score }}/100</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">KPIs > 80%</div>
+                        <div class="data-value">
+                            {% if result.data.KPIs_met_gt_80 == 1 %}
+                                <i class="fas fa-check-circle text-success"></i> Oui
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger"></i> Non
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Prix Remportés</div>
+                        <div class="data-value">
+                            {% if result.data['awards_won?'] == 1 %}
+                                <i class="fas fa-trophy text-warning"></i> Oui
+                            {% else %}
+                                <i class="fas fa-times-circle text-muted"></i> Non
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Éducation</div>
+                        <div class="data-value" style="font-size: 1rem;">{{ result.data.education }}</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Genre</div>
+                        <div class="data-value">{{ result.data.gender|upper }}</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-label">Canal Recrutement</div>
+                        <div class="data-value" style="font-size: 1rem;">{{ result.data.recruitment_channel }}</div>
+                    </div>
+                </div>
+
+                <!-- Recommandations détaillées -->
+                <h5 class="mt-5 mb-3"><i class="fas fa-lightbulb me-2"></i>Recommandations Personnalisées</h5>
+                {% for reco in result.recommendation.recommandations %}
+                <div class="recommendation-card priorite-{{ reco.priorite|lower }}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">{{ reco.titre }}</h6>
+                        <span class="priority-badge badge-{{ reco.priorite|lower }}">{{ reco.priorite }}</span>
+                    </div>
+                    <p class="mb-0 text-muted">{{ reco.description }}</p>
+                </div>
+                {% endfor %}
+
+                <!-- Actions immédiates -->
+                <h5 class="mt-4 mb-3"><i class="fas fa-tasks me-2"></i>Actions Immédiates à Prendre</h5>
+                {% for action in result.recommendation.actions_immediates %}
+                <div class="action-item">{{ action }}</div>
+                {% endfor %}
+
+                <!-- Boutons d'action -->
+                <div class="text-center mt-5">
+                    <a href="/segmentation" class="btn btn-outline-custom btn-custom me-3">
+                        <i class="fas fa-arrow-left me-2"></i>Nouvelle Analyse
+                    </a>
+                    <a href="/" class="btn btn-primary-custom btn-custom">
+                        <i class="fas fa-home me-2"></i>Retour Accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-white">
+            <p><i class="fas fa-chart-line me-2"></i>Analyse propulsée par Machine Learning</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

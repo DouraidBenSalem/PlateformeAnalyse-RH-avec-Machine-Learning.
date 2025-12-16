@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction de Besoin de Formation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+        }
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #764ba2;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .btn-predict {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: transform 0.2s;
+        }
+        .btn-predict:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .feature-icon {
+            color: #667eea;
+            margin-right: 10px;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Navigation -->
+        <nav>
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        </nav>
+
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h1 class="text-white mb-2">
+                <i class="fas fa-graduation-cap"></i> Système d'Analyse de Besoin de Formation
+            </h1>
+            <p class="text-white-50">Prédiction Intelligente des Besoins de Formation des Employés</p>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <i class="fas fa-info-circle feature-icon"></i>
+            <strong>Comment ça marche ?</strong> Remplissez le formulaire ci-dessous avec les informations de l'employé. 
+            Notre modèle d'IA analysera le profil et déterminera si une formation est nécessaire, en fournissant des recommandations personnalisées.
+        </div>
+
+        <!-- Formulaire Principal -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-clipboard-list"></i> Informations de l'Employé
+                </h3>
+            </div>
+            <div class="card-body p-4">
+                <form action="/predict_formation" method="POST">
+                    
+                    <!-- Section Localisation -->
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-map-marker-alt feature-icon"></i>Localisation
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">Ville</label>
+                            <input type="text" class="form-control" id="city" name="city" 
+                                   placeholder="ex: city_103" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="city_development_index" class="form-label">Indice de développement</label>
+                            <input type="number" step="0.001" class="form-control" 
+                                   id="city_development_index" name="city_development_index" 
+                                   placeholder="ex: 0.920" min="0" max="1" required>
+                            <small class="text-muted">Valeur entre 0 et 1</small>
+                        </div>
+                    </div>
+
+                    <!-- Section Profil Personnel -->
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-user feature-icon"></i>Profil Personnel
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="gender" class="form-label">Genre</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="Male">Homme</option>
+                                <option value="Female">Femme</option>
+                                <option value="Other">Autre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="relevent_experience" class="form-label">Expérience pertinente</label>
+                            <select class="form-select" id="relevent_experience" name="relevent_experience" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="Has relevent experience">Oui</option>
+                                <option value="No relevent experience">Non</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section Éducation -->
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-graduation-cap feature-icon"></i>Éducation
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label for="enrolled_university" class="form-label">Université</label>
+                            <select class="form-select" id="enrolled_university" name="enrolled_university" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="no_enrollment">Pas inscrit</option>
+                                <option value="Full time course">Temps plein</option>
+                                <option value="Part time course">Temps partiel</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="education_level" class="form-label">Niveau d'éducation</label>
+                            <select class="form-select" id="education_level" name="education_level" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="Graduate">Diplômé</option>
+                                <option value="Masters">Master</option>
+                                <option value="High School">Lycée</option>
+                                <option value="Phd">Doctorat</option>
+                                <option value="Primary School">École primaire</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="major_discipline" class="form-label">Discipline principale</label>
+                            <select class="form-select" id="major_discipline" name="major_discipline" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="STEM">STEM</option>
+                                <option value="Business Degree">Commerce</option>
+                                <option value="Humanities">Sciences humaines</option>
+                                <option value="Arts">Arts</option>
+                                <option value="Other">Autre</option>
+                                <option value="No Major">Aucune</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section Expérience Professionnelle -->
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-briefcase feature-icon"></i>Expérience Professionnelle
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label for="experience" class="form-label">Années d'expérience</label>
+                            <input type="number" class="form-control" id="experience" name="experience" 
+                                   placeholder="ex: 15" min="0" max="30" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="company_size" class="form-label">Taille de l'entreprise</label>
+                            <input type="number" class="form-control" id="company_size" name="company_size" 
+                                   placeholder="ex: 50" min="1" required>
+                            <small class="text-muted">Nombre d'employés</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="company_type" class="form-label">Type d'entreprise</label>
+                            <select class="form-select" id="company_type" name="company_type" required>
+                                <option value="">Sélectionnez...</option>
+                                <option value="Pvt Ltd">Privée Ltd</option>
+                                <option value="Funded Startup">Startup financée</option>
+                                <option value="Public Sector">Secteur public</option>
+                                <option value="Early Stage Startup">Startup débutante</option>
+                                <option value="NGO">ONG</option>
+                                <option value="Other">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section Formation -->
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-chalkboard-teacher feature-icon"></i>Formation & Mobilité
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="last_new_job" class="form-label">Dernier changement de poste</label>
+                            <input type="number" class="form-control" id="last_new_job" name="last_new_job" 
+                                   placeholder="ex: 1" min="0" max="5" required>
+                            <small class="text-muted">Années depuis le dernier changement (0 = jamais)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="training_hours" class="form-label">Heures de formation</label>
+                            <input type="number" class="form-control" id="training_hours" name="training_hours" 
+                                   placeholder="ex: 36" min="0" required>
+                            <small class="text-muted">Nombre total d'heures</small>
+                        </div>
+                    </div>
+
+                    <!-- Bouton Submit -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-predict">
+                            <i class="fas fa-brain me-2"></i>Analyser le Besoin de Formation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-white-50">
+            <small>
+                <i class="fas fa-shield-alt"></i> Système sécurisé | 
+                <i class="fas fa-robot"></i> Propulsé par Machine Learning
+            </small>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

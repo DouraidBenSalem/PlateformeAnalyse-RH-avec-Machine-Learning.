@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction de la Performance des Employés</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 25px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #764ba2;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f6f9ff;
+            border: 1px solid #d9e2ff;
+        }
+
+        .result-box h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result-label {
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+
+        .error-msg {
+            color: #c53030;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Prédiction de la Performance des Employés</h1>
+            <p>Modèle XGBoost avec normalisation, PCA et 5 variables explicatives</p>
+        </div>
+
+        <nav>
+            <a href="/"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        </nav>
+
+        <div class="form-container">
+            <div class="info-box">
+                <p>
+                    <strong>ℹ️ Information :</strong>
+                    Ce formulaire permet d’estimer <strong>l’évaluation de performance (1 à 4)</strong>
+                    d’un employé à partir de cinq indicateurs :
+                    <strong>% d’augmentation salariale</strong>, <strong>satisfaction au travail</strong>,
+                    <strong>implication au travail</strong>, <strong>années dans le poste actuel</strong>
+                    et <strong>années depuis la dernière promotion</strong>.
+                </p>
+            </div>
+
+            {% if error %}
+              <p class="error-msg">{{ error }}</p>
+            {% endif %}
+
+            <form action="/predict_performance" method="POST">
+                <div class="form-section">
+                    <h2>🧮 Variables du modèle</h2>
+                    <div class="form-grid">
+                        <!-- PercentSalaryHike -->
+                        <div class="form-group">
+                            <label for="PercentSalaryHike">% d’Augmentation salariale (PercentSalaryHike) *</label>
+                            <input
+                                type="number"
+                                id="PercentSalaryHike"
+                                name="percent_salary_hike"
+                                step="0.01"
+                                min="0"
+                                max="100"
+                                required
+                                value="{{ percent_hike }}">
+                        </div>
+
+                        <!-- JobSatisfaction -->
+                        <div class="form-group">
+                            <label for="JobSatisfaction">Satisfaction au travail (JobSatisfaction, 1–4) *</label>
+                            <select id="JobSatisfaction" name="job_satisfaction" required>
+                                <option value="1" {% if job_satisfaction == 1 %}selected{% endif %}>1 – Très insatisfait</option>
+                                <option value="2" {% if job_satisfaction == 2 %}selected{% endif %}>2 – Insatisfait</option>
+                                <option value="3" {% if job_satisfaction == 3 or not job_satisfaction %}selected{% endif %}>3 – Satisfait</option>
+                                <option value="4" {% if job_satisfaction == 4 %}selected{% endif %}>4 – Très satisfait</option>
+                            </select>
+                        </div>
+
+                        <!-- JobInvolvement -->
+                        <div class="form-group">
+                            <label for="JobInvolvement">Implication au travail (JobInvolvement, 1–4) *</label>
+                            <select id="JobInvolvement" name="job_involvement" required>
+                                <option value="1" {% if job_involvement == 1 %}selected{% endif %}>1 – Faible</option>
+                                <option value="2" {% if job_involvement == 2 %}selected{% endif %}>2 – Modérée</option>
+                                <option value="3" {% if job_involvement == 3 or not job_involvement %}selected{% endif %}>3 – Élevée</option>
+                                <option value="4" {% if job_involvement == 4 %}selected{% endif %}>4 – Très élevée</option>
+                            </select>
+                        </div>
+
+                        <!-- YearsInCurrentRole -->
+                        <div class="form-group">
+                            <label for="YearsInCurrentRole">Années dans le poste actuel (YearsInCurrentRole) *</label>
+                            <input
+                                type="number"
+                                id="YearsInCurrentRole"
+                                name="years_in_current_role"
+                                min="0"
+                                max="40"
+                                step="1"
+                                required
+                                value="{{ years_in_role }}">
+                        </div>
+
+                        <!-- YearsSinceLastPromotion -->
+                        <div class="form-group">
+                            <label for="YearsSinceLastPromotion">Années depuis la dernière promotion (YearsSinceLastPromotion) *</label>
+                            <input
+                                type="number"
+                                id="YearsSinceLastPromotion"
+                                name="years_since_last_promotion"
+                                min="0"
+                                max="40"
+                                step="1"
+                                required
+                                value="{{ years_since_last_promotion }}">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">🔮 Prédire la performance</button>
+            </form>
+
+            {% if prediction %}
+            <div class="result-box">
+                <h2>✅ Résultat de la prédiction</h2>
+                <p>Classe de performance prédite : <strong>{{ prediction }}</strong></p>
+                <p class="result-label">Interprétation : <strong>{{ label }}</strong></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Résultat de Segmentation - HR Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .segment-badge {
+        font-size: 1.5rem;
+        padding: 15px 30px;
+        border-radius: 50px;
+        display: inline-block;
+        margin: 20px 0;
+    }
+    .segment-0 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+    .segment-1 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+    .segment-2 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+    .segment-3 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: white; }
+    
+    .recommendation-box {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .data-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    .data-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-transform: uppercase;
+    }
+    .data-value {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #495057;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="result-card text-center">
+            <h2><i class="fas fa-user-check me-2"></i>Résultat de la Segmentation</h2>
+            <div class="segment-badge segment-{{ result.segment }}">
+                <i class="fas fa-star me-2"></i>{{ result.segment_name }}
+            </div>
+            
+            <div class="recommendation-box text-start">
+                <h5><i class="fas fa-lightbulb me-2"></i>Recommandations</h5>
+                <p class="mb-0">{{ result.recommendation }}</p>
+            </div>
+            
+            <h5 class="mt-4 mb-3"><i class="fas fa-info-circle me-2"></i>Détails de l'Employé</h5>
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Département</div>
+                    <div class="data-value">{{ result.data.department }}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Région</div>
+                    <div class="data-value">{{ result.data.region }}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Éducation</div>
+                    <div class="data-value">{{ result.data.education }}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Âge</div>
+                    <div class="data-value">{{ result.data.age }} ans</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Genre</div>
+                    <div class="data-value">{{ result.data.gender|upper }}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Années de Service</div>
+                    <div class="data-value">{{ result.data.length_of_service }} ans</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Formations</div>
+                    <div class="data-value">{{ result.data.no_of_trainings }}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Évaluation Année Précédente</div>
+                    <div class="data-value">{{ result.data.previous_year_rating }}/5</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Score Formation</div>
+                    <div class="data-value">{{ result.data.avg_training_score }}/100</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">KPIs > 80%</div>
+                    <div class="data-value">{{ 'Oui' if result.data.KPIs_met_gt_80 == 1 else 'Non' }}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Prix Remportés</div>
+                    <div class="data-value">{{ 'Oui' if result.data['awards_won?'] == 1 else 'Non' }}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Canal Recrutement</div>
+                    <div class="data-value">{{ result.data.recruitment_channel }}</div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="/segmentation" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-arrow-left me-1"></i> Nouvelle Prédiction
+                </a>
+                <a href="/recommendations" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    <i class="fas fa-chart-pie me-1"></i> Voir Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
